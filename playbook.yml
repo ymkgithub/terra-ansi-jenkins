@@ -32,19 +32,19 @@
         name: docker
         state: latest
 
-    - name: Install pip3 via amazon-linux-extras
-      shell: amazon-linux-extras install python3 -y
+    # - name: Install pip3 via amazon-linux-extras
+    #   shell: amazon-linux-extras install python3 -y
 
-    - name: Ensure pip3 is installed
-      command: python3 -m ensurepip --upgrade
-      args:
-        warn: false
-        creates: /usr/local/bin/pip3
+    # - name: Ensure pip3 is installed
+    #   command: python3 -m ensurepip --upgrade
+    #   args:
+    #     warn: false
+    #     creates: /usr/local/bin/pip3
 
-    - name: Install Docker SDK using pip3
-      pip:
-        name: docker
-        executable: pip3
+    # - name: Install Docker SDK using pip3
+    #   pip:
+    #     name: docker
+    #     executable: pip3
 
 
     # - name: Install pip
