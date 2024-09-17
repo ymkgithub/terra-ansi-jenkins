@@ -38,9 +38,10 @@
         state: present
         update_cache: true
 
-    - name: Install Docker SDK
+    - name: Install Docker SDK using pip3
       pip:
         name: docker
+        executable: pip3
         
 
     - name: Add ec2-user to docker group
