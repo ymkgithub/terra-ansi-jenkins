@@ -32,18 +32,39 @@ pipeline {
             }
         }
 
+        // stage('Create ECR Repo') {
+        //     steps {
+        //         echo 'Creating ECR Repo for App'
+        //         sh """
+        //         aws ecr create-repository \
+        //           --repository-name ${APP_REPO_NAME} \
+        //           --image-scanning-configuration scanOnPush=false \
+        //           --image-tag-mutability MUTABLE \
+        //           --region ${AWS_REGION}
+        //         """
+        //     }
+        // }
+
         stage('Create ECR Repo') {
             steps {
                 echo 'Creating ECR Repo for App'
-                sh """
-                aws ecr create-repository \
-                  --repository-name ${APP_REPO_NAME} \
-                  --image-scanning-configuration scanOnPush=false \
-                  --image-tag-mutability MUTABLE \
-                  --region ${AWS_REGION}
-                """
+                script {
+                    def repoExists = sh(script: "aws ecr describe-repositories --repository-names ${APP_REPO_NAME} --region ${AWS_REGION} > /dev/null 2>&1", returnStatus: true)
+                    if (repoExists == 0) {
+                        echo "ECR Repository ${APP_REPO_NAME} already exists, skipping creation."
+                    } else {
+                        sh """
+                        aws ecr create-repository \
+                           --repository-name ${APP_REPO_NAME} \
+                           --image-scanning-configuration scanOnPush=false \
+                           --image-tag-mutability MUTABLE \
+                           --region ${AWS_REGION}
+                        """
+                    }
+                }
             }
         }
+
         
         stage('Substitute Terraform Outputs into .env Files') {
             steps {
