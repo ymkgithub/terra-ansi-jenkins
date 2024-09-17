@@ -6,7 +6,7 @@ terraform {
     }
   }
   backend "s3" {
-    bucket = "cw-todo-app"
+    bucket = "mahesh-cw-todo-app"
     key = "backend/tf-backend-jenkins.tfstate"
     region = "us-west-2"
     
@@ -41,12 +41,12 @@ provider "aws" {
 # }
 
 # Get the latest Amazon Linux 2 AMI with gp3
-data "aws_ami" "amazon_linux_gp3" {
+data "aws_ami" "amazon_linux_gp2" {
   most_recent = true
 
   filter {
     name   = "name"
-    values = ["amzn2-ami-hvm-*-x86_64-gp3"]  # Amazon Linux 2 AMI with gp3 volumes
+    values = ["amzn2-ami-hvm-*-x86_64-gp2"]  # Amazon Linux 2 AMI with gp2 volumes
   }
 
   filter {
@@ -68,7 +68,7 @@ data "aws_ami" "amazon_linux_gp3" {
 }
 
 resource "aws_instance" "managed_nodes" {
-  ami = data.aws_ami.amazon_linux_gp3.id
+  ami = data.aws_ami.amazon_linux_gp2.id
   count = 3
   instance_type = "t2.micro"
   key_name = var.ssh_key_name
