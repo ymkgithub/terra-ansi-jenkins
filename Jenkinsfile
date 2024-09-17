@@ -17,12 +17,12 @@ pipeline {
 
     stages {
 
-        stage('Git Clone') {
-            steps {
-                // Clone the repository
-                sh 'git clone https://github.com/ymkgithub/terra-ansi-jenkins.git'
-            }
-        }
+        // stage('Git Clone') {
+        //     steps {
+        //         // Clone the repository
+        //         sh 'git clone https://github.com/ymkgithub/terra-ansi-jenkins.git'
+        //     }
+        // }
 
         stage('Create Infrastructure for the App') {
             steps {
