@@ -1,4 +1,4 @@
 aws_region: us-west-2
 ecr_registry: 624544955932.dkr.ecr.us-west-2.amazonaws.com
-repo_name: clarusway-repo/cw-todo-app
+repo_name: mahesh-clarusway-repo/cw-todo-app
 postgres_password: Pp123456789

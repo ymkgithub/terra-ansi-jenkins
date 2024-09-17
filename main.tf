@@ -6,7 +6,7 @@ terraform {
     }
   }
   backend "s3" {
-    bucket = "cw-todo-app"
+    bucket = "mahesh-cw-todo-app"
     key = "backend/tf-backend-jenkins.tfstate"
     region = "us-west-2"
     
@@ -40,13 +40,13 @@ provider "aws" {
 #   role = aws_iam_role.aws_access.name
 # }
 
-# Get the latest Amazon Linux 2 AMI with gp3
-data "aws_ami" "amazon_linux_gp3" {
+# Get the latest Amazon Linux 2 AMI with gp2
+data "aws_ami" "amazon_linux_free_tier" {
   most_recent = true
 
   filter {
     name   = "name"
-    values = ["amzn2-ami-hvm-*-x86_64-gp3"]  # Amazon Linux 2 AMI with gp3 volumes
+    values = ["amzn2-ami-hvm-*-gp2"]
   }
 
   filter {
@@ -54,21 +54,11 @@ data "aws_ami" "amazon_linux_gp3" {
     values = ["hvm"]
   }
 
-  filter {
-    name   = "architecture"
-    values = ["x86_64"]
-  }
-
-  filter {
-    name   = "root-device-type"
-    values = ["ebs"]
-  }
-
-  owners = ["137112412989"]  # Amazon's AWS account ID for Amazon Linux 2
+  owners = ["amazon"]  # Only AMIs owned by Amazon
 }
 
 resource "aws_instance" "managed_nodes" {
-  ami = data.aws_ami.amazon_linux_gp3.id
+  ami = data.aws_ami.amazon_linux_free_tier.id
   count = 3
   instance_type = "t2.micro"
   key_name = var.ssh_key_name
