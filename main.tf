@@ -41,24 +41,24 @@ provider "aws" {
 # }
 
 # Get the latest Amazon Linux 2 AMI with gp2
-data "aws_ami" "amazon_linux_free_tier" {
-  most_recent = true
+# data "aws_ami" "amazon_linux_free_tier" {
+#   most_recent = true
 
-  filter {
-    name   = "name"
-    values = ["amzn2-ami-hvm-*-x86_64-gp2"]  # Amazon Linux 2 AMI with gp2 volumes
-  }
+#   filter {
+#     name   = "name"
+#     values = ["amzn2-ami-hvm-*-x86_64-gp2"]  # Amazon Linux 2 AMI with gp2 volumes
+#   }
 
-  filter {
-    name   = "virtualization-type"
-    values = ["hvm"]
-  }
+#   filter {
+#     name   = "virtualization-type"
+#     values = ["hvm"]
+#   }
 
-  owners = ["amazon"]  # Only AMIs owned by Amazon
-}
+#   owners = ["amazon"]  # Only AMIs owned by Amazon
+# }
 
 resource "aws_instance" "managed_nodes" {
-  ami = data.aws_ami.amazon_linux_free_tier.id
+  ami = "ami-0f095f89ae15be883"
   count = 3
   instance_type = "t2.micro"
   key_name = var.ssh_key_name
