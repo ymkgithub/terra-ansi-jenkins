@@ -6,12 +6,13 @@
     - "playbook-vars.yml"
   tasks:
     - name: Update all packages
-      dnf:
+      yum:
         name: '*'
         state: latest
+        update_cache: yes
 
     - name: Remove Docker if installed from default repo (if exists)
-      dnf:
+      yum:
         name: "{{ item }}"
         state: removed
       with_items:
@@ -28,7 +29,7 @@
       command: amazon-linux-extras enable docker
 
     - name: Install Docker
-      dnf:
+      yum:
         name: docker
         state: latest
 
