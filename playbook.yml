@@ -57,19 +57,19 @@
         state: started
         enabled: yes
 
-    # - name: Download AWS CLI
-    #   get_url:
-    #     url: https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip
-    #     dest: /home/ec2-user/awscliv2.zip
+    - name: Download AWS CLI
+      get_url:
+        url: https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip
+        dest: /home/ec2-user/awscliv2.zip
 
-    # - name: Unzip zip file
-    #   unarchive:
-    #     src: /home/ec2-user/awscliv2.zip
-    #     dest: /home/ec2-user
-    #     remote_src: True
+    - name: Unzip zip file
+      unarchive:
+        src: /home/ec2-user/awscliv2.zip
+        dest: /home/ec2-user
+        remote_src: True
 
-    # - name: Install the AWS CLI
-    #   shell: ./aws/install
+    - name: Install the AWS CLI
+      shell: ./aws/install
 
     - name: Login to AWS ECR
       shell: |
