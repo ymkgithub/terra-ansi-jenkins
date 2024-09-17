@@ -102,41 +102,41 @@ pipeline {
              }
         }
 
-        stage('Destroy the infrastructure'){
-            steps{
-                timeout(time:1, unit:'DAYS'){
-                    input message:'Approve terminate'
-                }
-                sh """
-                docker image prune -af
-                terraform destroy --auto-approve
-                aws ecr delete-repository \
-                  --repository-name ${APP_REPO_NAME} \
-                  --region ${AWS_REGION} \
-                  --force
-                """
-            }
-        }
+        // stage('Destroy the infrastructure'){
+        //     steps{
+        //         timeout(time:1, unit:'DAYS'){
+        //             input message:'Approve terminate'
+        //         }
+        //         sh """
+        //         docker image prune -af
+        //         terraform destroy --auto-approve
+        //         aws ecr delete-repository \
+        //           --repository-name ${APP_REPO_NAME} \
+        //           --region ${AWS_REGION} \
+        //           --force
+        //         """
+        //     }
+        // }
 
     }
 
-    post {
-        always {
-            echo 'Deleting all local images'
-            sh 'docker image prune -af'
-        }
-        failure {
+    // post {
+    //     always {
+    //         echo 'Deleting all local images'
+    //         sh 'docker image prune -af'
+    //     }
+    //     failure {
 
-            echo 'Delete the Image Repository on ECR due to the Failure'
-            sh """
-                aws ecr delete-repository \
-                  --repository-name ${APP_REPO_NAME} \
-                  --region ${AWS_REGION}\
-                  --force
-                """
-            echo 'Deleting Terraform Stack due to the Failure'
-                sh 'terraform destroy --auto-approve'
-        }
-    }
+    //         echo 'Delete the Image Repository on ECR due to the Failure'
+    //         sh """
+    //             aws ecr delete-repository \
+    //               --repository-name ${APP_REPO_NAME} \
+    //               --region ${AWS_REGION}\
+    //               --force
+    //             """
+    //         echo 'Deleting Terraform Stack due to the Failure'
+    //             sh 'terraform destroy --auto-approve'
+    //     }
+    // }
 
 }
