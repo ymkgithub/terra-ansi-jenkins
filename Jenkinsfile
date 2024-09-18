@@ -64,17 +64,19 @@ pipeline {
 
         stage('Substitute Terraform Outputs into .env Files') {
             steps {
+                withCredentials([aws(credentialsId: 'aws-key', accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
                 echo 'Substituting Terraform Outputs into .env Files'
-                script {
-                    env.NODE_IP = sh(script: 'terraform output -raw node_public_ip', returnStdout: true).trim()
-                    env.DB_HOST = sh(script: 'terraform output -raw postgre_private_ip', returnStdout: true).trim()
+                    script {
+                        env.NODE_IP = sh(script: 'terraform output -raw node_public_ip', returnStdout: true).trim()
+                        env.DB_HOST = sh(script: 'terraform output -raw postgre_private_ip', returnStdout: true).trim()
+                    }
+                    sh 'echo ${DB_HOST}'
+                    sh 'echo ${NODE_IP}'
+                    sh 'envsubst < node-env-template > ./nodejs/server/.env'
+                    sh 'cat ./nodejs/server/.env'
+                    sh 'envsubst < react-env-template > ./react/client/.env'
+                    sh 'cat ./react/client/.env'
                 }
-                sh 'echo ${DB_HOST}'
-                sh 'echo ${NODE_IP}'
-                sh 'envsubst < node-env-template > ./nodejs/server/.env'
-                sh 'cat ./nodejs/server/.env'
-                sh 'envsubst < react-env-template > ./react/client/.env'
-                sh 'cat ./react/client/.env'
             }
         }
 
@@ -90,20 +92,24 @@ pipeline {
 
         stage('Push Image to ECR Repo') {
             steps {
-                echo 'Pushing App Image to ECR Repo'
-                sh 'aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin "$ECR_REGISTRY"'
-                sh 'docker push "$ECR_REGISTRY/$APP_REPO_NAME:postgr"'
-                sh 'docker push "$ECR_REGISTRY/$APP_REPO_NAME:nodejs"'
-                sh 'docker push "$ECR_REGISTRY/$APP_REPO_NAME:react"'
+                withCredentials([aws(credentialsId: 'aws-key', accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                    echo 'Pushing App Image to ECR Repo'
+                    sh 'aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin "$ECR_REGISTRY"'
+                    sh 'docker push "$ECR_REGISTRY/$APP_REPO_NAME:postgr"'
+                    sh 'docker push "$ECR_REGISTRY/$APP_REPO_NAME:nodejs"'
+                    sh 'docker push "$ECR_REGISTRY/$APP_REPO_NAME:react"'
+                }
             }
         }
 
         stage('Wait for the Instance') {
             steps {
-                script {
-                    echo 'Waiting for the instance'
-                    def id = sh(script: 'aws ec2 describe-instances --region ${AWS_REGION} --filters Name=tag-value,Values=ansible_postgresql Name=instance-state-name,Values=running --query Reservations[*].Instances[*].[InstanceId] --output text', returnStdout: true).trim()
-                    sh 'aws ec2 wait instance-status-ok --region ${AWS_REGION} --instance-ids ${id}'
+                withCredentials([aws(credentialsId: 'aws-key', accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                    script {
+                        echo 'Waiting for the instance'
+                        def id = sh(script: 'aws ec2 describe-instances --region ${AWS_REGION} --filters Name=tag-value,Values=ansible_postgresql Name=instance-state-name,Values=running --query Reservations[*].Instances[*].[InstanceId] --output text', returnStdout: true).trim()
+                        sh 'aws ec2 wait instance-status-ok --region ${AWS_REGION} --instance-ids ${id}'
+                    }
                 }
             }
         }
@@ -120,17 +126,19 @@ pipeline {
 
         stage('Destroy the Infrastructure') {
             steps {
-                timeout(time: 1, unit: 'DAYS') {
-                    input message: 'Approve termination'
+                withCredentials([aws(credentialsId: 'aws-key', accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                    timeout(time: 1, unit: 'DAYS') {
+                        input message: 'Approve termination'
+                    }
+                    sh """
+                    docker image prune -af
+                    terraform destroy --auto-approve
+                    aws ecr delete-repository \
+                      --repository-name ${APP_REPO_NAME} \
+                      --region ${AWS_REGION} \
+                      --force
+                    """
                 }
-                sh """
-                docker image prune -af
-                terraform destroy --auto-approve
-                aws ecr delete-repository \
-                  --repository-name ${APP_REPO_NAME} \
-                  --region ${AWS_REGION} \
-                  --force
-                """
             }
         }
     }
@@ -141,15 +149,17 @@ pipeline {
             sh 'docker image prune -af'
         }
         failure {
-            echo 'Deleting the Image Repository on ECR due to the Failure'
-            sh """
-                aws ecr delete-repository \
-                  --repository-name ${APP_REPO_NAME} \
-                  --region ${AWS_REGION} \
-                  --force
-            """
-            echo 'Deleting Terraform Stack due to the Failure'
-            sh 'terraform destroy --auto-approve'
+            withCredentials([aws(credentialsId: 'aws-key', accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                echo 'Deleting the Image Repository on ECR due to the Failure'
+                sh """
+                    aws ecr delete-repository \
+                      --repository-name ${APP_REPO_NAME} \
+                      --region ${AWS_REGION} \
+                      --force
+                """
+                echo 'Deleting Terraform Stack due to the Failure'
+                sh 'terraform destroy --auto-approve'
+            }
         }
     }
 }
