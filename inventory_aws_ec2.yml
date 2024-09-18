@@ -3,6 +3,7 @@ regions:
   - "us-west-2"
 filters:
   tag:stack: jenkins-project
+  instance-state-name: running
 keyed_groups:
   - key: tags.Name
   - key: tags.environment
