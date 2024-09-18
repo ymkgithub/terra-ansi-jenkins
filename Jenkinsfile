@@ -80,27 +80,27 @@ pipeline {
             }
         }
 
-        // stage('Build App Docker Images') {
-        //     steps {
-        //         echo 'Building App Images'
-        //         sh 'docker build --force-rm -t "$ECR_REGISTRY/$APP_REPO_NAME:postgr" -f ./postgresql/dockerfile-postgresql .'
-        //         sh 'docker build --force-rm -t "$ECR_REGISTRY/$APP_REPO_NAME:nodejs" -f ./nodejs/dockerfile-nodejs .'
-        //         sh 'docker build --force-rm -t "$ECR_REGISTRY/$APP_REPO_NAME:react" -f ./react/dockerfile-react .'
-        //         sh 'docker image ls'
-        //     }
-        // }
+        stage('Build App Docker Images') {
+            steps {
+                echo 'Building App Images'
+                sh 'docker build --force-rm -t "$ECR_REGISTRY/$APP_REPO_NAME:postgr" -f ./postgresql/dockerfile-postgresql .'
+                sh 'docker build --force-rm -t "$ECR_REGISTRY/$APP_REPO_NAME:nodejs" -f ./nodejs/dockerfile-nodejs .'
+                sh 'docker build --force-rm -t "$ECR_REGISTRY/$APP_REPO_NAME:react" -f ./react/dockerfile-react .'
+                sh 'docker image ls'
+            }
+        }
 
-        // stage('Push Image to ECR Repo') {
-        //     steps {
-        //         withCredentials([aws(credentialsId: 'aws-key', accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
-        //             echo 'Pushing App Image to ECR Repo'
-        //             sh 'aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin "$ECR_REGISTRY"'
-        //             sh 'docker push "$ECR_REGISTRY/$APP_REPO_NAME:postgr"'
-        //             sh 'docker push "$ECR_REGISTRY/$APP_REPO_NAME:nodejs"'
-        //             sh 'docker push "$ECR_REGISTRY/$APP_REPO_NAME:react"'
-        //         }
-        //     }
-        // }
+        stage('Push Image to ECR Repo') {
+            steps {
+                withCredentials([aws(credentialsId: 'aws-key', accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                    echo 'Pushing App Image to ECR Repo'
+                    sh 'aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin "$ECR_REGISTRY"'
+                    sh 'docker push "$ECR_REGISTRY/$APP_REPO_NAME:postgr"'
+                    sh 'docker push "$ECR_REGISTRY/$APP_REPO_NAME:nodejs"'
+                    sh 'docker push "$ECR_REGISTRY/$APP_REPO_NAME:react"'
+                }
+            }
+        }
 
         stage('Wait for the Instance') {
             steps {
@@ -152,44 +152,44 @@ pipeline {
         }
 
 
-        // stage('Destroy the Infrastructure') {
-        //     steps {
-        //         withCredentials([aws(credentialsId: 'aws-key', accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
-        //             timeout(time: 1, unit: 'DAYS') {
-        //                 input message: 'Approve termination'
-        //             }
-        //             sh """
-        //             docker image prune -af
-        //             terraform destroy --auto-approve
-        //             aws ecr delete-repository \
-        //               --repository-name ${APP_REPO_NAME} \
-        //               --region ${AWS_REGION} \
-        //               --force
-        //             """
-        //         }
-        //     }
-        // }
+        stage('Destroy the Infrastructure') {
+            steps {
+                withCredentials([aws(credentialsId: 'aws-key', accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                    timeout(time: 1, unit: 'DAYS') {
+                        input message: 'Approve termination'
+                    }
+                    sh """
+                    docker image prune -af
+                    terraform destroy --auto-approve
+                    aws ecr delete-repository \
+                      --repository-name ${APP_REPO_NAME} \
+                      --region ${AWS_REGION} \
+                      --force
+                    """
+                }
+            }
+        }
     }
 
-    // post {
-    //     always {
-    //         echo 'Deleting all local images'
-    //         sh 'docker image prune -af'
-    //     }
-    //     failure {
-    //         withCredentials([aws(credentialsId: 'aws-key', accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
-    //             echo 'Deleting the Image Repository on ECR due to the Failure'
-    //             sh """
-    //                 aws ecr delete-repository \
-    //                   --repository-name ${APP_REPO_NAME} \
-    //                   --region ${AWS_REGION} \
-    //                   --force
-    //             """
-    //             echo 'Deleting Terraform Stack due to the Failure'
-    //             sh 'terraform destroy --auto-approve'
-    //         }
-    //     }
-    // }
+    post {
+        always {
+            echo 'Deleting all local images'
+            sh 'docker image prune -af'
+        }
+        failure {
+            withCredentials([aws(credentialsId: 'aws-key', accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                echo 'Deleting the Image Repository on ECR due to the Failure'
+                sh """
+                    aws ecr delete-repository \
+                      --repository-name ${APP_REPO_NAME} \
+                      --region ${AWS_REGION} \
+                      --force
+                """
+                echo 'Deleting Terraform Stack due to the Failure'
+                sh 'terraform destroy --auto-approve'
+            }
+        }
+    }
 }
 
 
