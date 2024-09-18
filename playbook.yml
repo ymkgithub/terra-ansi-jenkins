@@ -25,7 +25,7 @@
         - docker-latest-logrotate
         - docker-logrotate
         - docker-engine
-
+    
     - name: Enable Docker via amazon-linux-extras
       command: amazon-linux-extras enable docker
 
@@ -34,27 +34,47 @@
         name: docker
         state: latest
 
-    - name: Check if Python 3 is installed
-      command: python3 --version
-      register: python_check
-      ignore_errors: yes
-
-    - name: Install Python 3 if not installed
+    - name: Ensure Python 3 is installed
       yum:
         name: python3
         state: present
-      when: python_check.rc != 0
 
-    - name: Install pip
-      package:
+    - name: Ensure pip3 is installed
+      yum:
         name: python3-pip
         state: present
-        update_cache: true
 
-    - name: Install Docker SDK for Python using pip3
+    - name: Install Docker SDK for Python
       pip:
         name: docker
         executable: pip3
+        state: present
+    
+    - name: Set Python interpreter to Python 3
+      set_fact:
+        ansible_python_interpreter: /usr/bin/python3
+
+    # - name: Check if Python 3 is installed
+    #   command: python3 --version
+    #   register: python_check
+    #   ignore_errors: yes
+
+    # - name: Install Python 3 if not installed
+    #   yum:
+    #     name: python3
+    #     state: present
+    #   when: python_check.rc != 0
+
+    # - name: Install pip
+    #   package:
+    #     name: python3-pip
+    #     state: present
+    #     update_cache: true
+
+    # - name: Install Docker SDK for Python using pip3
+    #   pip:
+    #     name: docker
+    #     executable: pip3
 
     - name: Add ec2-user to the Docker group
       user:
