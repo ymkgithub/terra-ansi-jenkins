@@ -18,7 +18,7 @@ provider "aws" {
 }
 
 resource "aws_iam_role" "aws_access" {
-  name = "${var.prefix}-role"
+  name = "mahesh-${var.prefix}-role"
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -36,7 +36,7 @@ resource "aws_iam_role" "aws_access" {
 }
 
 resource "aws_iam_instance_profile" "instance_profile" {
-  name = "${var.prefix}-profile"
+  name = "mahesh-${var.prefix}-profile"
   role = aws_iam_role.aws_access.name
 }
 
