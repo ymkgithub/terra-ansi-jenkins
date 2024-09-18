@@ -50,9 +50,9 @@
         executable: pip3
         state: present
     
-    - name: Set Python interpreter to Python 3
+    - name: Set Python interpreter to auto_silent
       set_fact:
-        ansible_python_interpreter: /usr/bin/python3
+        ansible_python_interpreter: auto_silent
 
     # - name: Check if Python 3 is installed
     #   command: python3 --version
