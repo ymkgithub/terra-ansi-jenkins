@@ -42,19 +42,21 @@ pipeline {
 
         stage('Create ECR Repo') {
             steps {
-                echo 'Creating ECR Repo for App'
-                script {
-                    def repoExists = sh(script: "aws ecr describe-repositories --repository-names ${APP_REPO_NAME} --region ${AWS_REGION} > /dev/null 2>&1", returnStatus: true)
-                    if (repoExists == 0) {
-                        echo "ECR Repository ${APP_REPO_NAME} already exists, skipping creation."
-                    } else {
-                        sh """
-                        aws ecr create-repository \
-                           --repository-name ${APP_REPO_NAME} \
-                           --image-scanning-configuration scanOnPush=false \
-                           --image-tag-mutability MUTABLE \
-                           --region ${AWS_REGION}
-                        """
+                withCredentials([aws(credentialsId: 'aws-key', accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                    script {
+                        echo 'Creating ECR Repo for App'
+                        def repoExists = sh(script: "aws ecr describe-repositories --repository-names ${APP_REPO_NAME} --region ${AWS_REGION} > /dev/null 2>&1", returnStatus: true)
+                        if (repoExists == 0) {
+                           echo "ECR Repository ${APP_REPO_NAME} already exists, skipping creation."
+                        } else {
+                            sh """
+                            aws ecr create-repository \
+                              --repository-name ${APP_REPO_NAME} \
+                              --image-scanning-configuration scanOnPush=false \
+                              --image-tag-mutability MUTABLE \
+                              --region ${AWS_REGION}
+                            """
+                        }
                     }
                 }
             }
