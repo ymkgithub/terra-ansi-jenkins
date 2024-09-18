@@ -39,16 +39,31 @@
         name: python3
         state: present
 
-    - name: Ensure pip3 is installed
-      yum:
-        name: python3-pip
-        state: present
+    # - name: Ensure pip3 is installed
+    #   yum:
+    #     name: python3-pip
+    #     state: present
 
     - name: Install Docker SDK for Python
       pip:
         name: docker
         executable: pip3
         state: present
+    
+     - name: Ensure pip is installed
+      package:
+        name: python3-pip
+        state: present
+      when: ansible_facts['distribution'] == 'Amazon'
+    
+    - name: Install boto3 and botocore using pip3
+      pip:
+        name:
+          - boto3
+          - botocore
+        state: present
+        executable: pip3
+      become: true
     
     # - name: Set Python interpreter to auto_silent
     #   set_fact:
