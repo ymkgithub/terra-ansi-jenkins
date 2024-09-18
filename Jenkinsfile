@@ -114,15 +114,43 @@ pipeline {
             }
         }
 
+        // stage('Deploy the App') {
+        //     steps {
+        //         withCredentials([aws(credentialsId: 'aws-key', accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+        //             echo 'Deploy the App'
+        //             sh 'ls -l'
+        //             sh 'ansible --version'
+        //             sh 'ansible-inventory --graph'
+        //             ansiblePlaybook credentialsId: 'techcrux', disableHostKeyChecking: true, installation: 'ansible', inventory: 'inventory_aws_ec2.yml', playbook: 'playbook.yml'
+        //         }
+        //     }
+        // }
+
         stage('Deploy the App') {
             steps {
-                echo 'Deploy the App'
-                sh 'ls -l'
-                sh 'ansible --version'
-                sh 'ansible-inventory --graph'
-                ansiblePlaybook credentialsId: 'techcrux', disableHostKeyChecking: true, installation: 'ansible', inventory: 'inventory_aws_ec2.yml', playbook: 'playbook.yml'
+                withCredentials([aws(credentialsId: 'aws-key', accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                    script {
+                        echo 'Deploy the App'
+                        // Print directory contents for debugging
+                        sh 'ls -l'
+
+                        // Verify Ansible version and inventory
+                        sh 'ansible --version'
+                        sh 'ansible-inventory --graph'
+
+                        // Run Ansible Playbook
+                        ansiblePlaybook(
+                            credentialsId: 'techcrux', 
+                            disableHostKeyChecking: true, 
+                            installation: 'ansible', 
+                            inventory: 'inventory_aws_ec2.yml', 
+                            playbook: 'playbook.yml'
+                        )
+                    }
+                }
             }
         }
+
 
         stage('Destroy the Infrastructure') {
             steps {
