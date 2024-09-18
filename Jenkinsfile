@@ -40,11 +40,27 @@ pipeline {
             }
         }
 
+        // stage('Create Infrastructure for the App') {
+        //     steps {
+        //         echo 'Creating Infrastructure for the App on AWS Cloud'
+        //         sh 'terraform init -no-color'
+        //         sh 'terraform apply --auto-approve -no-color'
+        //     }
+        // }
+
         stage('Create Infrastructure for the App') {
             steps {
-                echo 'Creating Infrastructure for the App on AWS Cloud'
-                sh 'terraform init -no-color'
-                sh 'terraform apply --auto-approve -no-color'
+                withCredentials([aws(credentialsId: 'aws-key', accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                    script {
+                        // Export AWS credentials to be used by Terraform
+                        env.AWS_ACCESS_KEY_ID = credentials('aws-key').accessKey
+                        env.AWS_SECRET_ACCESS_KEY = credentials('aws-key').secretKey
+
+                        echo 'Creating Infrastructure for the App on AWS Cloud'
+                        sh 'terraform init -no-color'
+                        sh 'terraform apply --auto-approve -no-color'
+                    }
+                }
             }
         }
 
