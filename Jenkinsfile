@@ -82,23 +82,44 @@ pipeline {
             }
         }
 
+        // stage('Build App Docker Images') {
+        //     steps {
+        //         echo 'Building App Images'
+        //         sh 'docker build --force-rm -t "$ECR_REGISTRY/$APP_REPO_NAME:postgr_${BUILD_NUMBER}" -f ./postgresql/dockerfile-postgresql .'
+        //         sh 'docker build --force-rm -t "$ECR_REGISTRY/$APP_REPO_NAME:nodejs_${BUILD_NUMBER}" -f ./nodejs/dockerfile-nodejs .'
+        //         sh 'docker build --force-rm -t "$ECR_REGISTRY/$APP_REPO_NAME:react_${BUILD_NUMBER}" -f ./react/dockerfile-react .'
+        //         sh 'docker image ls'
+        //     }
+        // }
+
         stage('Build App Docker Images') {
             steps {
                 echo 'Building App Images'
-                sh 'docker build --force-rm -t "$ECR_REGISTRY/$APP_REPO_NAME:postgr_${BUILD_NUMBER}" -f ./postgresql/dockerfile-postgresql .'
-                sh 'docker build --force-rm -t "$ECR_REGISTRY/$APP_REPO_NAME:nodejs_${BUILD_NUMBER}" -f ./nodejs/dockerfile-nodejs .'
-                sh 'docker build --force-rm -t "$ECR_REGISTRY/$APP_REPO_NAME:react_${BUILD_NUMBER}" -f ./react/dockerfile-react .'
+                sh 'docker build --force-rm -t "$ECR_REGISTRY/$APP_REPO_NAME:postgr" -f ./postgresql/dockerfile-postgresql .'
+                sh 'docker build --force-rm -t "$ECR_REGISTRY/$APP_REPO_NAME:nodejs" -f ./nodejs/dockerfile-nodejs .'
+                sh 'docker build --force-rm -t "$ECR_REGISTRY/$APP_REPO_NAME:react" -f ./react/dockerfile-react .'
                 sh 'docker image ls'
             }
         }
         
+        // stage('Push Image to ECR Repo') {
+        //     steps {
+        //         echo 'Pushing App Image to ECR Repo'
+        //         sh 'aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin "$ECR_REGISTRY"'
+        //         sh 'docker push "$ECR_REGISTRY/$APP_REPO_NAME:postgr_${BUILD_NUMBER}"'
+        //         sh 'docker push "$ECR_REGISTRY/$APP_REPO_NAME:nodejs_${BUILD_NUMBER}"'
+        //         sh 'docker push "$ECR_REGISTRY/$APP_REPO_NAME:react_${BUILD_NUMBER}"'
+        //     }
+        // }
+
+
         stage('Push Image to ECR Repo') {
             steps {
                 echo 'Pushing App Image to ECR Repo'
                 sh 'aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin "$ECR_REGISTRY"'
-                sh 'docker push "$ECR_REGISTRY/$APP_REPO_NAME:postgr_${BUILD_NUMBER}"'
-                sh 'docker push "$ECR_REGISTRY/$APP_REPO_NAME:nodejs_${BUILD_NUMBER}"'
-                sh 'docker push "$ECR_REGISTRY/$APP_REPO_NAME:react_${BUILD_NUMBER}"'
+                sh 'docker push "$ECR_REGISTRY/$APP_REPO_NAME:postgr"'
+                sh 'docker push "$ECR_REGISTRY/$APP_REPO_NAME:nodejs"'
+                sh 'docker push "$ECR_REGISTRY/$APP_REPO_NAME:react"'
             }
         }
 
