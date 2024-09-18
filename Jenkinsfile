@@ -8,8 +8,8 @@ pipeline {
  environment {
         PATH=sh(script:"echo $PATH:/usr/local/bin", returnStdout:true).trim()
         AWS_REGION = "us-west-2"
-        AWS_ACCOUNT_ID=sh(script:'export PATH="$PATH:/usr/local/bin" && aws sts get-caller-identity --query Account --output text', returnStdout:true).trim()
-        ECR_REGISTRY="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
+        // AWS_ACCOUNT_ID=sh(script:'export PATH="$PATH:/usr/local/bin" && aws sts get-caller-identity --query Account --output text', returnStdout:true).trim()
+        // ECR_REGISTRY="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
         APP_REPO_NAME = "mahesh-clarusway-repo/cw-todo-app"
         APP_NAME = "todo"
     }
@@ -23,6 +23,22 @@ pipeline {
         //         sh 'git clone https://github.com/ymkgithub/terra-ansi-jenkins.git'
         //     }
         // }
+
+        stage('Set Environment Variables') {
+            steps {
+                withCredentials([aws(credentialsId: 'aws-key', accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                    script {
+                        // Set PATH to include /usr/local/bin
+                        env.PATH = "${sh(script: 'echo $PATH:/usr/local/bin', returnStdout: true).trim()}"
+
+                        // Get AWS Account ID
+                        def awsAccountId = sh(script: 'aws sts get-caller-identity --query Account --output text', returnStdout: true).trim()
+                        env.AWS_ACCOUNT_ID = awsAccountId
+                        env.ECR_REGISTRY = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
+                    }
+                }
+            }
+        }
 
         stage('Create Infrastructure for the App') {
             steps {
